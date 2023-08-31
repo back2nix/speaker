@@ -1,6 +1,6 @@
 # Построить образ прежде чем собрать под windows
 #docker_prebuild_image:
-	#docker build -t REPO_DEPRECATED/golang_bakend_msys2 -f docker/cross/Dockerfile .
+	#docker build -t back2nix/golang_bakend_msys2 -f docker/cross/Dockerfile .
 
 #windows:
 	##GOOS=windows GOARCH=amd64 CGO_ENABLED=1 $(GOBUILD) -v -o build/speaker.exe cmd/voice/main.go

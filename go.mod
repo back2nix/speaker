@@ -1,4 +1,4 @@
-module github.com/REPO_DEPRECATED/speaker_alpine
+module github.com/back2nix/speaker
 
 go 1.18
 

@@ -7,8 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/REPO_DEPRECATED/speaker_alpine/internal/server"
-	"github.com/REPO_DEPRECATED/speaker_alpine/internal/translateshell"
+	"github.com/back2nix/speaker/internal/server"
+	"github.com/back2nix/speaker/internal/translateshell"
 )
 
 func main() {

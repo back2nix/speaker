@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/atotto/clipboard"
-	"github.com/REPO_DEPRECATED/speaker_alpine/internal/intf"
-	"github.com/REPO_DEPRECATED/speaker_alpine/internal/translateshell"
+	"github.com/back2nix/speaker/internal/intf"
+	"github.com/back2nix/speaker/internal/translateshell"
 	"github.com/gofiber/fiber/v2"
 	"github.com/sirupsen/logrus"
 )

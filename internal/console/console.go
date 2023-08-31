@@ -10,7 +10,7 @@ import (
 	"github.com/atotto/clipboard"
 	// "github.com/eiannone/keyboard"
 
-	"github.com/REPO_DEPRECATED/speaker_alpine/internal/intf"
+	"github.com/back2nix/speaker/internal/intf"
 	hook "github.com/robotn/gohook"
 	"github.com/sirupsen/logrus"
 )

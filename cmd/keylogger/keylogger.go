@@ -8,7 +8,7 @@ import (
 	"github.com/MarinX/keylogger"
 	"github.com/sirupsen/logrus"
 
-	key "github.com/REPO_DEPRECATED/speaker_alpine/internal/keylogger"
+	key "github.com/back2nix/speaker/internal/keylogger"
 )
 
 func main() {
