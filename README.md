@@ -34,6 +34,6 @@ sudo result/bin/keylogger # запустить в отдельном окне е
 
 echo $WAYLAND_DISPLAY
 
-# Собрано с помощью
+### Собрано с помощью
 
 - https://github.com/nix-community/gomod2nix/blob/master/docs/getting-started.md
