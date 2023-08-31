@@ -1,0 +1,77 @@
+# Сперва
+# Запрещаем вообще все
+*
+
+# find . -type d | cut -c 3- | sed 's/^/!*/' | grep -v ".git"
+# Затем
+# Разрешаем мониторить эти папки
+!*nix
+!*last_nix
+!*internal
+!*internal/intf
+!*internal/logger
+!*internal/server
+!*internal/console
+!*internal/keylogger
+!*internal/translateshell
+!*cmd
+!*cmd/speaker
+!*cmd/keylogger
+!*docker
+!*sound
+
+# И в этих папках брать только эти форматы
+!*.lock
+!.envrc
+!*.nix
+!*.ini
+!.golangci.yml
+!.gitignore
+!.gitattributes
+!.gitmodules
+!go.mod
+!*.sh
+!*.go
+!*.gohtml
+!*.html
+!*.js
+!*.css
+!*.mod
+!*.json
+!*.conf
+!*.toml
+!*.vue
+!*.mp3
+!*.js
+!*.scss
+!*.sql
+!*.md
+!*.pth
+!*.so
+!*.crx
+!Dockerfile
+!Makefile
+!*.dockerfile
+!*.yml
+# Использутей для этих типв файлов git lfs
+#!*.png
+
+# Запрещаем конкретные файлы
+go.sum
+
+# Запретили все что в папке
+configs/*
+# Кроме этого
+# Но хранить в гите картинки категорически нельзя,
+# нужно использовать git lfs
+# https://git-lfs.github.com/
+!configs/*.example.toml
+
+# Запрещаем папки
+public
+tmp
+
+build
+node_modules
+storage
+public

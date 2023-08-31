@@ -1,0 +1,72 @@
+schema = 3
+
+[mod]
+  [mod."github.com/MarinX/keylogger"]
+    version = "v0.0.0-20210528193429-a54d7834cc1a"
+    hash = "sha256-mrahGKMrH50Bwo1vkPV1PBz8hFxyIXqLXODb9Pt5d8k="
+  [mod."github.com/andybalholm/brotli"]
+    version = "v1.0.5"
+    hash = "sha256-/qS8wU8yZQJ+uTOg66rEl9s7spxq9VIXF5L1BcaEClc="
+  [mod."github.com/atotto/clipboard"]
+    version = "v0.1.4"
+    hash = "sha256-ZZ7U5X0gWOu8zcjZcWbcpzGOGdycwq0TjTFh/eZHjXk="
+  [mod."github.com/bogem/id3v2/v2"]
+    version = "v2.1.4"
+    hash = "sha256-nbKIiEUfDMMunhYms3p0Ug2nLW/Eyq7FCDFabURFmdI="
+  [mod."github.com/gofiber/fiber/v2"]
+    version = "v2.48.0"
+    hash = "sha256-er1Kib6jfkB3oB0I23BzujcKlUrSECJcyPZ76I9TRao="
+  [mod."github.com/google/uuid"]
+    version = "v1.3.0"
+    hash = "sha256-QoR55eBtA94T2tBszyxfDtO7/pjZZSGb5vm7U0Xhs0Y="
+  [mod."github.com/klauspost/compress"]
+    version = "v1.16.3"
+    hash = "sha256-dU0OgO5afQ1z5s83Y3w8Bg0ftvg+ikWbktUACEgY3OQ="
+  [mod."github.com/mattn/go-colorable"]
+    version = "v0.1.13"
+    hash = "sha256-qb3Qbo0CELGRIzvw7NVM1g/aayaz4Tguppk9MD2/OI8="
+  [mod."github.com/mattn/go-isatty"]
+    version = "v0.0.19"
+    hash = "sha256-wYQqGxeqV3Elkmn26Md8mKZ/viw598R4Ych3vtt72YE="
+  [mod."github.com/mattn/go-runewidth"]
+    version = "v0.0.14"
+    hash = "sha256-O3QdxqAcJgQ+HL1v8oBA4iKBwJ2AlDN+F464027hWMU="
+  [mod."github.com/pkg/errors"]
+    version = "v0.9.1"
+    hash = "sha256-mNfQtcrQmu3sNg/7IwiieKWOgFQOVVe2yXgKBpe/wZw="
+  [mod."github.com/rivo/uniseg"]
+    version = "v0.2.0"
+    hash = "sha256-GLj0jiGrT03Ept4V6FXCN1yeZ/b6PpS3MEXK6rYQ8Eg="
+  [mod."github.com/robotn/gohook"]
+    version = "v0.40.0"
+    hash = "sha256-gpI2KMzOBie8EFj4I6m7xUAiM3IH0FsEykQ5RIk4ptw="
+  [mod."github.com/sirupsen/logrus"]
+    version = "v1.9.0"
+    hash = "sha256-xOwGFsYGIxNiurS8Zue8mhlFK/G7U1LVFFrv4vcr1GM="
+  [mod."github.com/valyala/bytebufferpool"]
+    version = "v1.0.0"
+    hash = "sha256-I9FPZ3kCNRB+o0dpMwBnwZ35Fj9+ThvITn8a3Jr8mAY="
+  [mod."github.com/valyala/fasthttp"]
+    version = "v1.48.0"
+    hash = "sha256-OFgjq4C+1sixt9RWerzbte5bZzUXY5gP9/d6F8MiXL0="
+  [mod."github.com/valyala/tcplisten"]
+    version = "v1.0.0"
+    hash = "sha256-aP0CrNH6UNRMhzgA2NgPwKyZs6xry5aDlZnLgGuHZbs="
+  [mod."github.com/vcaesar/keycode"]
+    version = "v0.10.0"
+    hash = "sha256-7rJDSDWREtEGp8KktKl4Zz6mRs3VsAQkUIJ69Y6Hgvk="
+  [mod."go.uber.org/atomic"]
+    version = "v1.7.0"
+    hash = "sha256-g83RSzO/5k8W3qyiIsrQbVq1F8qJGccdWEXTjkqUOfc="
+  [mod."go.uber.org/multierr"]
+    version = "v1.6.0"
+    hash = "sha256-X+l7OPAkMhpw+5VvFWuQ/DfTCSjQH/8VvSoQrb44CEU="
+  [mod."go.uber.org/zap"]
+    version = "v1.22.0"
+    hash = "sha256-3voQ0SFThRxMD3mFiRC55KtbuIpmzLd8sfCD/mOc/T8="
+  [mod."golang.org/x/sys"]
+    version = "v0.10.0"
+    hash = "sha256-eeifyHj8IcTAruekJAGMCcjFyU2GAIAgvxS36hPZM1U="
+  [mod."golang.org/x/text"]
+    version = "v0.8.0"
+    hash = "sha256-hgWFnT01DRmywBEXKYEVaOee7i6z8Ydz7zGbjcWwOgI="
