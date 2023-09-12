@@ -11,6 +11,7 @@
 !*internal/intf
 !*internal/logger
 !*internal/server
+!*internal/localinput
 !*internal/console
 !*internal/keylogger
 !*internal/translateshell

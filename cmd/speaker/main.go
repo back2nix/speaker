@@ -7,7 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/back2nix/speaker/internal/server"
+	// "github.com/back2nix/speaker/internal/server"
+	"github.com/back2nix/speaker/internal/localinput"
 	"github.com/back2nix/speaker/internal/translateshell"
 )
 
@@ -29,7 +30,8 @@ func main() {
 
 	if os.Getenv("WAYLAND_DISPLAY") != "" {
 		fmt.Println("Using Wayland")
-		err := server.Start(cancel, trShell)
+		// err := server.Start(cancel, trShell)
+		err := localinput.Start(cancel, trShell)
 		if err != nil {
 			panic(err)
 		}
