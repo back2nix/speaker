@@ -226,7 +226,9 @@ func PresedWorker() {
 		case CheckKeys(evdev.KEY_C, true, false, false, k):
 			mess = "L_CTRL+C"
 		case CheckKeys(evdev.KEY_Z, true, false, false, k):
-			mess = "L_CTRL+C"
+			mess = "L_CTRL+Z"
+		case CheckKeys(evdev.KEY_Z, false, false, true, k):
+			mess = "L_CTRL+Z"
 		case CheckKeys(evdev.KEY_F, false, false, true, k):
 			mess = "L_ALT+F"
 		case CheckKeys(evdev.KEY_C, false, false, true, k):
