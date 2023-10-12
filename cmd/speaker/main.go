@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	// "github.com/back2nix/speaker/internal/server"
+
 	"github.com/back2nix/speaker/internal/localinput"
 	"github.com/back2nix/speaker/internal/translateshell"
 )
@@ -37,6 +38,10 @@ func main() {
 		}
 	} else {
 		fmt.Println("Using X11")
+		err := localinput.Start(cancel, trShell)
+		if err != nil {
+			panic(err)
+		}
 		// console.Add(cancel, trShell)
 		// console.Low()
 	}
