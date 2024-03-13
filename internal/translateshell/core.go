@@ -51,16 +51,19 @@ func (s *Store) Run() {
 				s.original = text
 			}
 
+			// speed := 5
+			speed := 3
+
 			switch s.typeOperation {
 			case operationOnlyTranslate:
-				replay(s.ctxSpeak, "ru", s.translate, 5, 2)
+				replay(s.ctxSpeak, "ru", s.translate, speed, 2)
 			case operationOnlyOriginalRu:
-				replay(s.ctxSpeak, "ru", s.original, 5, 2)
+				replay(s.ctxSpeak, "ru", s.original, speed, 2)
 			case operationOnlyOriginal:
 				replay(s.ctxSpeak, "en", s.original, 2, 1)
 			case operationTranslateAndOriginal:
-				replay(s.ctxSpeak, "ru", s.translate, 5, 2)
-				replay(s.ctxSpeak, "en", s.original, 5, 2)
+				replay(s.ctxSpeak, "ru", s.translate, speed, 2)
+				replay(s.ctxSpeak, "en", s.original, speed, 2)
 				// speak(s.ctxSpeak, text, `trans -b -t ru -no-translate -sp "%s"`)
 				// default:
 				// s.translate = speak(s.ctxSpeak, text, `trans -b -t ru -p "%s"`)
