@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 
 	// "github.com/back2nix/speaker/internal/server"
@@ -32,6 +33,12 @@ func main() {
 	if os.Getenv("WAYLAND_DISPLAY") != "" {
 		fmt.Println("Using Wayland")
 		// err := server.Start(cancel, trShell)
+		err := localinput.Start(cancel, trShell)
+		if err != nil {
+			panic(err)
+		}
+	} else if runtime.GOOS == "darwin" { // macOS
+		fmt.Println("Using macOS")
 		err := localinput.Start(cancel, trShell)
 		if err != nil {
 			panic(err)

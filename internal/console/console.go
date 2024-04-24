@@ -8,24 +8,17 @@ import (
 	"time"
 
 	"github.com/atotto/clipboard"
-	// "github.com/eiannone/keyboard"
-
 	"github.com/back2nix/speaker/internal/intf"
 	hook "github.com/robotn/gohook"
 	"github.com/sirupsen/logrus"
 )
 
 type model struct {
-	LogLevel    int
-	MaxLogLevel int
+	logLevel    int
+	maxLogLevel int
 }
 
-var mod = model{
-	LogLevel:    0,
-	MaxLogLevel: len(LogLevelString),
-}
-
-var LogLevelString = [...]string{
+var logLevelString = [...]string{
 	"info",
 	"trace",
 	"debug",
@@ -34,80 +27,42 @@ var LogLevelString = [...]string{
 	"fatal",
 }
 
-func (m *model) LevelIntToString() {
-	m.LogLevel++
-	id := m.LogLevel % m.MaxLogLevel
-	if m.LogLevel >= m.MaxLogLevel {
-		m.LogLevel = 0
+func (m *model) levelToIntString() {
+	m.logLevel++
+	id := m.logLevel % len(logLevelString)
+	if m.logLevel >= len(logLevelString) {
+		m.logLevel = 0
 	}
 
 	switch id {
-	case 0: //nolint:goconst
+	case 0:
 		logrus.SetLevel(logrus.InfoLevel)
-	case 1: //nolint:goconst
+	case 1:
 		logrus.SetLevel(logrus.TraceLevel)
-	case 2: //nolint:goconst
+	case 2:
 		logrus.SetLevel(logrus.DebugLevel)
 	case 3:
 		logrus.SetLevel(logrus.WarnLevel)
-	case 4: //nolint:goconst
+	case 4:
 		logrus.SetLevel(logrus.ErrorLevel)
-	case 5: //nolint:goconst
+	case 5:
 		logrus.SetLevel(logrus.FatalLevel)
 	default:
 		logrus.SetLevel(logrus.InfoLevel)
 	}
 
-	fmt.Println("logLevel", LogLevelString[id])
+	fmt.Println("logLevel", logLevelString[id])
 }
 
-// func Keyboard() (err error) {
-// 	if err = keyboard.Open(); err != nil {
-// 		return
-// 	}
-//
-// 	defer func() {
-// 		_ = keyboard.Close()
-// 	}()
-//
-// FOR0:
-// 	for {
-// 		char, key, err := keyboard.GetKey()
-// 		if err != nil {
-// 			panic(err)
-// 		}
-//
-// 		switch key {
-// 		case keyboard.KeyCtrlC:
-// 			break FOR0
-// 		}
-//
-// 		switch char {
-// 		case 'q':
-// 			break FOR0
-// 		case 'c':
-// 			break FOR0
-// 		case 'l':
-// 			mod.LevelIntToString()
-// 		}
-//
-// 		if key == keyboard.KeyEsc {
-// 			break FOR0
-// 		}
-// 	}
-// 	//os.Exit(0)
-// 	return
-// }
-
-func Add(cancel context.CancelFunc, translator intf.Translator) {
+func add(cancel context.CancelFunc, translator intf.Translator) {
 	readRU := false
 
-	ctrl_c_func := func() {
+	ctrlCFunc := func() {
 		if translator.CheckPause() {
 			return
 		}
 
-		time.Sleep(time.Millisecond * 50)
+		time.Sleep(50 * time.Millisecond)
 		text, err := clipboard.ReadAll()
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
@@ -119,10 +74,7 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 			return
 		}
 
-		processedString, err := RegexWork(text)
-
-		fmt.Println(processedString)
-
+		processedString, err := regexWork(text)
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"err": err,
@@ -130,17 +82,15 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 			return
 		}
 		if readRU {
-			processedString, _ := RegexWorkRu(text)
+			processedString, _ := regexWorkRu(text)
 			translator.OnlyOriginalRu()
 			translator.Go(processedString)
 		} else {
-			// translator.OnlyOriginal()
 			translator.OnlyTranslate()
 			translator.Go(processedString)
 		}
 	}
 
-	// xclip
 	go func() {
 		messageChannel := make(chan string)
 		go clipboardMonitor(messageChannel)
@@ -149,7 +99,7 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 			select {
 			case msg := <-messageChannel:
 				fmt.Println("Received message:", msg)
-				ctrl_c_func()
+				ctrlCFunc()
 			case <-time.After(time.Second):
 				// Do something else or just wait
 			}
@@ -180,49 +130,6 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 		translator.SetPause()
 	})
 
-	//hook.Register(hook.KeyDown, []string{"t", "alt"}, func(e hook.Event) {
-	//fmt.Println("alt-t")
-	////voice.InvertTranslate()
-
-	////if voice.TanslateOrNot() {
-	////translator.OnlyOriginalRu("без перевода")
-	////} else {
-	////translator.OnlyOriginalRu("переводить текст")
-	////}
-	//})
-
-	//hook.Register(hook.KeyDown, []string{"-", "alt"}, func(e hook.Event) {
-	//fmt.Println("-", "alt")
-	////out, speed, err := voice.SpeedSub()
-	////if err != nil {
-	////fmt.Println(err)
-	////return
-	////}
-
-	////logrus.WithFields(logrus.Fields{
-	////"out": out,
-	////}).Info("speed-")
-
-	////str := fmt.Sprintf("%.1f", speed)
-	////translator.OnlyOriginalRu(str)
-	//})
-
-	//hook.Register(hook.KeyDown, []string{"+", "alt"}, func(e hook.Event) {
-	//fmt.Println("+", "alt")
-	////out, speed, err := voice.SpeedAdd()
-	////if err != nil {
-	////fmt.Println(err)
-	////return
-	////}
-
-	////logrus.WithFields(logrus.Fields{
-	////"out": out,
-	////}).Info("speed+")
-
-	////str := fmt.Sprintf("%.1f", speed)
-	////translator.OnlyOriginalRu(str)
-	//})
-
 	hook.Register(hook.KeyDown, []string{"f", "alt"}, func(e hook.Event) {
 		if translator.CheckPause() {
 			return
@@ -236,42 +143,14 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 			translator.OnlyOriginalRu()
 			translator.Go("включить переводчик")
 		}
-		// time.Sleep(time.Millisecond * 50)
-		// text, err := clipboard.ReadAll()
-		//
-		// if err != nil {
-		// 	logrus.WithFields(logrus.Fields{
-		// 		"err": err,
-		// 	}).Warn("clipboard")
-		//
-		// 	translator.OnlyOriginalRu()
-		// 	translator.Go("не скопировалось")
-		// 	return
-		// }
-
-		// processedString, err := RegexWork(text)
-
-		// if err != nil {
-		// 	logrus.WithFields(logrus.Fields{
-		// 		"err": err,
-		// 	}).Warn("regexp")
-		// 	return
-		// }
-		// translator.TranslateAndOriginal()
-		// translator.Go(processedString)
 	})
 
-	//hook.Register(hook.KeyDown, []string{"meta", "t"}, func(e hook.Event) {
-	//fmt.Println("key down", e.String(), e.Keychar)
-	//})
-
-	fmt.Println("--- Please press t---")
 	hook.Register(hook.KeyDown, []string{"z", "ctrl"}, func(e hook.Event) {
 		if translator.CheckPause() {
 			return
 		}
 
-		time.Sleep(time.Millisecond * 50)
+		time.Sleep(50 * time.Millisecond)
 		text, err := clipboard.ReadAll()
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
@@ -283,7 +162,7 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 			return
 		}
 
-		processedString, err := RegexWork(text)
+		processedString, err := regexWork(text)
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"err": err,
@@ -291,55 +170,18 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 			return
 		}
 		translator.OnlyOriginal()
-		// translator.OnlyTranslate()
 		translator.Go(processedString)
 	})
 
-	//fmt.Println("--- Please press c---")
-	//hook.Register(hook.KeyDown, []string{"z", "ctrl"}, func(e hook.Event) {
-	//if translator.CheckPause() {
-	//return
-	//}
-
-	// time.Sleep(time.Millisecond * 50)
-	// text, err := clipboard.ReadAll()
-
-	//if err != nil {
-	//logrus.WithFields(logrus.Fields{
-	//"err": err,
-	//}).Warn("clipboard")
-
-	//translator.OnlyOriginalRu()
-	//translator.Go("не скопировалось")
-	//return
-	//}
-
-	// processedString, err := RegexWork(text)
-
-	//if err != nil {
-	//logrus.WithFields(logrus.Fields{
-	//"err": err,
-	//}).Warn("regexp")
-	//return
-	//}
-	//translator.OnlyOriginal()
-	//translator.Go(processedString)
-	//})
-
-	fmt.Println("--- Please press c---")
 	hook.Register(hook.KeyDown, []string{"c", "ctrl"}, func(e hook.Event) {
-		ctrl_c_func()
+		ctrlCFunc()
 	})
 
-	hook.Register(hook.KeyDown, []string{"r", "ctrl", "shift"}, func(e hook.Event) {
-		fmt.Println("r", "ctrl", "shift")
-	})
-
-	s := hook.Start()
-	<-hook.Process(s)
+	hook.Start()
+	<-hook.Process()
 }
 
-func Low() {
+func low() {
 	EvChan := hook.Start()
 	defer hook.End()
 
@@ -429,22 +271,10 @@ func compileMathSymbolsRegexp() *regexp.Regexp {
 	}
 	regexPattern = "(" + regexPattern + ")"
 
-	// Заменяем символы в строке на их описания
 	return regexp.MustCompile(regexPattern)
 }
 
 func MathRegex(input string) (out string, err error) {
-	// out = re.ReplaceAllStringFunc(input, func(match string) string {
-	// 	matches := re.FindStringSubmatch(match)
-	// 	element := matches[1]
-	// 	set := matches[2]
-	//
-	// 	if replacement, exists := dictionary[element]; exists {
-	// 		return fmt.Sprintf("%s belongs to the set of %s", replacement, set)
-	// 	}
-	// 	return match
-	// })
-
 	out = regexPattern.ReplaceAllStringFunc(input, func(matched string) string {
 		return mathSymbols[matched]
 	})
@@ -452,7 +282,7 @@ func MathRegex(input string) (out string, err error) {
 	return out, nil
 }
 
-func RegexWork(tt string) (out string, err error) {
+func regexWork(tt string) (out string, err error) {
 	tt, _ = MathRegex(tt)
 
 	tt = strings.NewReplacer("\n", "", "\r", "", "\"", "", "'", "").Replace(tt)
@@ -474,7 +304,7 @@ var (
 	singleSpacePattern = regexp.MustCompile(`\s+`)
 )
 
-func RegexWorkRu(tt string) (out string, err error) {
+func regexWorkRu(tt string) (out string, err error) {
 	tt = reg01.ReplaceAllString(tt, " ")
 	tt = singleSpacePattern.ReplaceAllString(tt, " ")
 	tt = strings.ReplaceAll(tt, " .", ".")

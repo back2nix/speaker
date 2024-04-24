@@ -63,7 +63,6 @@ func Start(cancel context.CancelFunc, translator intf.Translator) (err error) {
 			translator.OnlyOriginalRu()
 			translator.Go(processedString)
 		} else {
-			// translator.OnlyOriginal()
 			translator.OnlyTranslate()
 			translator.Go(processedString)
 		}
@@ -94,7 +93,6 @@ func Start(cancel context.CancelFunc, translator intf.Translator) (err error) {
 			return
 		}
 		translator.OnlyOriginal()
-		// translator.OnlyTranslate()
 		translator.Go(processedString)
 	}
 
@@ -105,12 +103,8 @@ func Start(cancel context.CancelFunc, translator intf.Translator) (err error) {
 		readRU = !readRU
 
 		if readRU {
-			// translator.OnlyOriginalRu()
-			// translator.Go("режим чтения на русском")
 			translateshell.Play("sound/computer-processing.mp3")
 		} else {
-			// translator.OnlyOriginalRu()
-			// translator.Go("включить переводчик")
 			translateshell.Play("sound/slide-click-92152.mp3")
 		}
 	}
@@ -124,52 +118,15 @@ func Start(cancel context.CancelFunc, translator intf.Translator) (err error) {
 	}
 
 	ctrl_p_func = func() {
-		// fmt.Println("ctrl-alt-p")
 		if !translator.CheckPause() {
-			// translator.OnlyOriginalRu()
-			// translator.Go("пауза")
-			// translateshell.Play("sound/pause-89443.mp3")
 			translateshell.Play("sound/slide-click-92152.mp3")
 		} else {
-			// translator.OnlyOriginalRu()
-			// translator.Go("пауза снята")
-			// translateshell.Play("sound/unpause-106278.mp3")
 			translateshell.Play("sound/slide-click-92152.mp3")
 		}
 		translator.SetPause()
 	}
 
-	// app := fiber.New()
-	//
-	// app.Get("/", func(c *fiber.Ctx) error {
-	// 	return c.SendString("Hello, Fiber!")
-	// })
-
-	// app.Get("/echo/:text", func(c *fiber.Ctx) error {
-	// 	text := c.Params("text")
-	// 	fmt.Println(text)
-	// 	switch text {
-	// 	case "L_CTRL+L_SHIFT+C", "L_CTRL+C":
-	// 		ctrl_c_func()
-	// 	case "L_CTRL+Z", "L_ALT+Z":
-	// 		ctrl_z_func()
-	// 	case "L_ALT+F":
-	// 		ctrl_f_func()
-	// 	case "L_CTRL+L_ALT+P":
-	// 		ctrl_p_func()
-	// 	case "L_ALT+C":
-	// 		alt_c_func(0)
-	// 	case "L_ALT+Cx2":
-	// 		alt_c_func(1)
-	// 	}
-	// 	return c.SendString("You entered: " + text)
-	// })
-
-	//
-
 	return devInput()
-	// port := ":3111"
-	// return app.Listen(port)
 }
 
 var channel = make(chan map[uint16]bool)
@@ -288,6 +245,7 @@ var (
 	re = regexp.MustCompile(`([\wλ]+)\s+∈\s+([\w ]+)`)
 
 	mathSymbols = map[string]string{
+		"ё":    "е",
 		"∂f":   "Partial derivative of f",
 		"∂x":   "Partial derivative of x",
 		"⊥":    "Perpendicular",
@@ -402,6 +360,7 @@ var (
 )
 
 func RegexWorkRu(tt string) (out string, err error) {
+	tt = strings.ReplaceAll(tt, "ё", "е")
 	tt = reg01.ReplaceAllString(tt, " ")
 	tt = singleSpacePattern.ReplaceAllString(tt, " ")
 	tt = strings.ReplaceAll(tt, " .", ".")

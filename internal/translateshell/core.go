@@ -51,8 +51,8 @@ func (s *Store) Run() {
 				s.original = text
 			}
 
-			// speed := 5
-			speed := 3
+			speed := 5
+			// speed := 3
 
 			switch s.typeOperation {
 			case operationOnlyTranslate:
