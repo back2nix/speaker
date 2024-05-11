@@ -17,8 +17,7 @@ alt+c x2 - break and flush clipboard
 
 ```
 nix-shell
-
-make keyloger_run # запустить отдельно работает под root
+go mod tidy
 make run
 ```
 
