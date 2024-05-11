@@ -1,5 +1,7 @@
 package intf
 
+import "context"
+
 type Translator interface {
 	Run()
 	OnlyTranslate()
@@ -9,4 +11,5 @@ type Translator interface {
 	Go(text string)
 	CheckPause() bool
 	SetPause()
+	Speak(ctx context.Context, text, command string) string
 }

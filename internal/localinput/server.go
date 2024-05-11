@@ -19,25 +19,37 @@ var (
 	ctrl_z_func func()
 	ctrl_f_func func()
 	alt_c_func  func(a int)
+	alt_v_func  func()
 	ctrl_p_func func()
 )
 
 func Start(cancel context.CancelFunc, translator intf.Translator) (err error) {
 	readRU := false
+	flagToCopyBuffer := false
 
 	translateshell.Play("sound/interface-soft-click-131438.mp3")
 
 	ctrl_c_func = func() {
-		if translator.CheckPause() {
-			return
-		}
-
 		time.Sleep(time.Millisecond * 50)
 		text, err := clipboard.ReadAll()
 		fmt.Println("text:", text)
 		if text == "" {
 			return
 		}
+
+		if flagToCopyBuffer {
+			engTxt := translator.Speak(context.Background(), text, `trans -b -t en "%s"`)
+			engTxt = strings.TrimSuffix(engTxt, "\n")
+			fmt.Printf("eng: %v\n", engTxt)
+			if engTxt != "" {
+				clipboard.WriteAll(engTxt)
+			}
+		}
+
+		if translator.CheckPause() {
+			return
+		}
+
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"err": err,
@@ -115,6 +127,10 @@ func Start(cancel context.CancelFunc, translator intf.Translator) (err error) {
 		case 1:
 			clipboard.WriteAll("")
 		}
+	}
+	alt_v_func = func() {
+		flagToCopyBuffer = !flagToCopyBuffer
+		fmt.Println("flagToCopyBuffer", flagToCopyBuffer)
 	}
 
 	ctrl_p_func = func() {
@@ -195,6 +211,8 @@ func PresedWorker() {
 			} else {
 				mess = "L_ALT+C"
 			}
+		case CheckKeys(evdev.KEY_V, false, false, true, k):
+			mess = "L_ALT+V"
 		}
 		if mess != "" {
 			last = mess
@@ -219,6 +237,8 @@ func SendMessage(input string) {
 		ctrl_p_func()
 	case "L_ALT+C":
 		alt_c_func(0)
+	case "L_ALT+V":
+		alt_v_func()
 	case "L_ALT+Cx2":
 		alt_c_func(1)
 	}

@@ -100,6 +100,10 @@ func (s *Store) Go(text string) {
 	s.chText <- text
 }
 
+func (s *Store) Speak(ctx context.Context, text, command string) string {
+	return speak(ctx, text, command)
+}
+
 func (s *Store) CheckPause() bool {
 	return s.pause
 }
@@ -112,7 +116,8 @@ func (s *Store) SetPause() {
 }
 
 func speak(ctx context.Context, text, command string) string {
-	cmd := exec.CommandContext(ctx, "sh", "-c", fmt.Sprintf(command, text))
+	txtCmd := fmt.Sprintf(command, text)
+	cmd := exec.CommandContext(ctx, "sh", "-c", txtCmd)
 	cmd.Stderr = os.Stderr
 	out, _ := cmd.Output()
 	return string(out)
