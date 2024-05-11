@@ -13,6 +13,7 @@
   goEnv = pkgs.mkGoEnv {pwd = ./.;};
 in
   pkgs.mkShell {
+    name = "speaker-shell";
     packages = with pkgs; [
       goEnv
       pkgs.gomod2nix
@@ -25,4 +26,7 @@ in
       xorg.libX11.dev
       xorg.libXtst
     ];
+
+    postShellHook = ''
+      '';
   }
