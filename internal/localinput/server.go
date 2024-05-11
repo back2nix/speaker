@@ -30,6 +30,10 @@ func Start(cancel context.CancelFunc, translator intf.Translator) (err error) {
 	translateshell.Play("sound/interface-soft-click-131438.mp3")
 
 	ctrl_c_func = func() {
+		if translator.CheckPause() {
+			return
+		}
+
 		time.Sleep(time.Millisecond * 50)
 		text, err := clipboard.ReadAll()
 		fmt.Println("text:", text)
@@ -44,10 +48,6 @@ func Start(cancel context.CancelFunc, translator intf.Translator) (err error) {
 			if engTxt != "" {
 				clipboard.WriteAll(engTxt)
 			}
-		}
-
-		if translator.CheckPause() {
-			return
 		}
 
 		if err != nil {
@@ -130,7 +130,11 @@ func Start(cancel context.CancelFunc, translator intf.Translator) (err error) {
 	}
 	alt_v_func = func() {
 		flagToCopyBuffer = !flagToCopyBuffer
-		fmt.Println("flagToCopyBuffer", flagToCopyBuffer)
+		if flagToCopyBuffer {
+			translateshell.Play("sound/computer-processing.mp3")
+		} else {
+			translateshell.Play("sound/slide-click-92152.mp3")
+		}
 	}
 
 	ctrl_p_func = func() {
