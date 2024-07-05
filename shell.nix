@@ -1,5 +1,5 @@
-{
-  pkgs ? (
+{ 
+pkgs ? (
     let
       sources = import ./nix/sources.nix;
     in
@@ -9,16 +9,17 @@
         ];
       }
   ),
-}: let
+}: 
+let
   goEnv = pkgs.mkGoEnv {pwd = ./.;};
 in
   pkgs.mkShell {
     name = "speaker-shell";
     packages = with pkgs; [
+      # pkgs.gomod2nix
       goEnv
-      pkgs.gomod2nix
       go-tools
-      pkgs.niv
+      # pkgs.niv
       translate-shell
       python310Packages.gtts
       mpg123

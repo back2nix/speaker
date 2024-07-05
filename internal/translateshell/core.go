@@ -51,7 +51,7 @@ func (s *Store) Run() {
 				s.original = text
 			}
 
-			speed := 5
+			speed := 7
 			// speed := 3
 
 			switch s.typeOperation {
@@ -137,7 +137,6 @@ func replay(ctx context.Context, lang, text string, speed, half int) (err error)
 	strCommand := fmt.Sprintf(`gtts-cli -l %s "%s"`, lang, text)
 	fmt.Println(text)
 	c1 := exec.CommandContext(ctx, "bash", "-c", strCommand)
-	// c1.Stderr = os.Stderr
 	stdout1, err := c1.StdoutPipe()
 	err = c1.Start()
 	if err != nil {
@@ -146,10 +145,8 @@ func replay(ctx context.Context, lang, text string, speed, half int) (err error)
 	}
 
 	strCommand2 := fmt.Sprintf(`mpg123 -d %d -h %d --pitch 0 -`, speed, half)
-	// fmt.Println(strCommand2)
 	c2 = exec.CommandContext(ctx, "bash", "-c", strCommand2)
 	c2.Stdin = stdout1
-	// c2.Stderr = os.Stderr
 	err = c2.Start()
 	if err != nil {
 		fmt.Println(err)

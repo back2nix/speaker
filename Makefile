@@ -39,3 +39,8 @@ appimage:
 # Просто сборка
 nix/build:
 	nix-build
+
+lorri:
+	systemctl --user daemon-reload
+	systemctl --user status lorri.service
+	lorri daemon
