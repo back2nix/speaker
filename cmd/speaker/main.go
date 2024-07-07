@@ -12,11 +12,6 @@ import (
 	"github.com/back2nix/speaker/internal/translateshell"
 )
 
-var (
-	a = 0
-	b = 0
-)
-
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 

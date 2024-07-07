@@ -8,10 +8,11 @@ import (
 	"time"
 
 	"github.com/atotto/clipboard"
-	"github.com/back2nix/speaker/internal/intf"
-	"github.com/back2nix/speaker/internal/translateshell"
 	evdev "github.com/gvalkov/golang-evdev"
 	"github.com/sirupsen/logrus"
+
+	"github.com/back2nix/speaker/internal/intf"
+	"github.com/back2nix/speaker/internal/translateshell"
 )
 
 var (
