@@ -8,9 +8,10 @@ import (
 	"time"
 
 	"github.com/atotto/clipboard"
-	"github.com/back2nix/speaker/internal/intf"
 	hook "github.com/robotn/gohook"
 	"github.com/sirupsen/logrus"
+
+	"github.com/back2nix/speaker/internal/intf"
 )
 
 type model struct {
@@ -178,7 +179,9 @@ func add(cancel context.CancelFunc, translator intf.Translator) {
 	})
 
 	hook.Start()
-	<-hook.Process()
+
+	evChan := make(chan hook.Event)
+	<-hook.Process(evChan)
 }
 
 func low() {

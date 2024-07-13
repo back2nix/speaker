@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/atotto/clipboard"
-	evdev "github.com/gvalkov/golang-evdev"
+	evdev "github.com/back2nix/golang-evdev"
 	"github.com/sirupsen/logrus"
 
 	"github.com/back2nix/speaker/internal/intf"

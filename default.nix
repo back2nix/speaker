@@ -1,16 +1,18 @@
-{ pkgs ? (
+{
+  pkgs ? (
     let
-      sources = import ./nix/sources.nix;
+      inherit (builtins) fetchTree fromJSON readFile;
+      inherit ((fromJSON (readFile ./flake.lock)).nodes) nixpkgs gomod2nix;
     in
-    import sources.nixpkgs {
-      overlays = [
-        (import "${sources.gomod2nix}/overlay.nix")
-      ];
-    }
-  )
-,
+      import (fetchTree nixpkgs.locked) {
+        overlays = [
+          (import "${fetchTree gomod2nix.locked}/overlay.nix")
+        ];
+      }
+  ),
+  buildGoApplication ? pkgs.buildGoApplication,
 }:
-pkgs.buildGoApplication {
+buildGoApplication {
   pname = "speaker";
   version = "1.0.0";
   pwd = ./.;

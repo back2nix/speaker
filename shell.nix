@@ -1,25 +1,26 @@
-{ 
-pkgs ? (
+{
+  pkgs ? (
     let
-      sources = import ./nix/sources.nix;
+      inherit (builtins) fetchTree fromJSON readFile;
+      inherit ((fromJSON (readFile ./flake.lock)).nodes) nixpkgs gomod2nix;
     in
-      import sources.nixpkgs {
+      import (fetchTree nixpkgs.locked) {
         overlays = [
-          (import "${sources.gomod2nix}/overlay.nix")
+          (import "${fetchTree gomod2nix.locked}/overlay.nix")
         ];
       }
   ),
-}: 
-let
-  goEnv = pkgs.mkGoEnv {pwd = ./.;};
+  mkGoEnv ? pkgs.mkGoEnv,
+  gomod2nix ? pkgs.gomod2nix,
+}: let
+  goEnv = mkGoEnv {pwd = ./.;};
 in
   pkgs.mkShell {
     name = "speaker-shell";
     packages = with pkgs; [
-      # pkgs.gomod2nix
       goEnv
+      gomod2nix
       go-tools
-      # pkgs.niv
       translate-shell
       python310Packages.gtts
       mpg123
@@ -29,5 +30,5 @@ in
     ];
 
     postShellHook = ''
-      '';
+    '';
   }
