@@ -7,6 +7,7 @@ nix run github:back2nix/speaker
 
 ```bash
 git clone https://github.com/back2nix/speaker
+cd speaker
 nix run .
 ```
 
@@ -14,6 +15,7 @@ nix run .
 
 ```bash
 git clone https://github.com/back2nix/speaker
+cd speaker
 nix develop
 go mod tidy
 make run
@@ -21,6 +23,8 @@ make run
 - или
 
 ```bash
+git clone https://github.com/back2nix/speaker
+cd speaker
 nix build .
 result/bin/speaker
 # sudo result/bin/keylogger # запустить в отдельном окне если у вас Wayland а не X11
