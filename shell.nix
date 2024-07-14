@@ -12,6 +12,7 @@
   ),
   mkGoEnv ? pkgs.mkGoEnv,
   gomod2nix ? pkgs.gomod2nix,
+  pkgsUnstable,
 }: let
   goEnv = mkGoEnv {pwd = ./.;};
 in
@@ -21,8 +22,8 @@ in
       goEnv
       gomod2nix
       go-tools
-      translate-shell
-      python310Packages.gtts
+      pkgsUnstable.translate-shell
+      pkgsUnstable.python312Packages.gtts
       mpg123
       libxkbcommon
       xorg.libX11.dev

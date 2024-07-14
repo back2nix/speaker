@@ -11,6 +11,7 @@
       }
   ),
   buildGoApplication ? pkgs.buildGoApplication,
+  pkgsUnstable,
   lib,
 }: let
 in
@@ -25,8 +26,8 @@ in
       libxkbcommon
       xorg.libX11
       xorg.libXtst
-      translate-shell
-      python310Packages.gtts
+      pkgsUnstable.translate-shell
+      pkgsUnstable.python312Packages.gtts
       mpg123
     ];
 
