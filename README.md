@@ -1,3 +1,31 @@
+### Как запустить?
+
+```bash
+nix run github:back2nix/speaker
+```
+- или
+
+```bash
+git clone https://github.com/back2nix/speaker
+nix run .
+```
+
+- или
+
+```bash
+git clone https://github.com/back2nix/speaker
+nix develop
+go mod tidy
+make run
+```
+- или
+
+```bash
+nix build .
+result/bin/speaker
+# sudo result/bin/keylogger # запустить в отдельном окне если у вас Wayland а не X11
+```
+
 #### Переводчик вслух
 
 - Копируешь текст на иностранном языке и программа читает в слух на русском
@@ -11,22 +39,6 @@ ctrl+f - переключить (переводчик)/(читать без пе
 ctrl+alt+p  - Пауза
 alt+c - break read
 alt+c x2 - break and flush clipboard
-```
-
-#### Как запустить?
-
-```
-nix-shell
-go mod tidy
-make run
-```
-
-### Сборка через nix-build
-
-```
-nix-build
-result/bin/speaker
-sudo result/bin/keylogger # запустить в отдельном окне если у вас Wayland а не X11
 ```
 
 ### Как проверить что у вас Wayland
