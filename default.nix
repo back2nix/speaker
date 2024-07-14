@@ -11,20 +11,31 @@
       }
   ),
   buildGoApplication ? pkgs.buildGoApplication,
-}:
-buildGoApplication {
-  pname = "speaker";
-  version = "1.0.0";
-  pwd = ./.;
-  src = ./.;
-  modules = ./gomod2nix.toml;
+  lib,
+}: let
+in
+  buildGoApplication {
+    pname = "speaker";
+    version = "1.0.0";
+    pwd = ./.;
+    src = ./.;
+    modules = ./gomod2nix.toml;
 
-  buildInputs = with pkgs; [
-    translate-shell
-    python310Packages.gtts
-    mpg123
-    libxkbcommon
-    xorg.libX11.dev
-    xorg.libXtst
-  ];
-}
+    buildInputs = with pkgs; [
+      libxkbcommon
+      xorg.libX11
+      xorg.libXtst
+      translate-shell
+      python310Packages.gtts
+      mpg123
+    ];
+
+    nativeBuildInputs = with pkgs; [makeWrapper];
+
+    postInstall = ''
+      cp -r sound $out/;
+
+      wrapProgram "$out/bin/speaker" \
+      --prefix PATH : ${lib.makeBinPath [pkgs.mpg123 pkgs.translate-shell pkgs.python310Packages.gtts pkgs.xorg.libXtst pkgs.libxkbcommon pkgs.xorg.libX11]}:$out \
+    '';
+  }

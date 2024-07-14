@@ -1,8 +1,6 @@
 module github.com/back2nix/speaker
 
-go 1.21.11
-
-toolchain go1.22.5
+go 1.20
 
 require (
 	github.com/MarinX/keylogger v0.0.0-20210528193429-a54d7834cc1a

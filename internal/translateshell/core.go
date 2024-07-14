@@ -54,16 +54,32 @@ func (s *Store) Run() {
 			speed := 7
 			// speed := 3
 
+			var err error
 			switch s.typeOperation {
 			case operationOnlyTranslate:
-				replay(s.ctxSpeak, "ru", s.translate, speed, 2)
+				err = replay(s.ctxSpeak, "ru", s.translate, speed, 2)
+				if err != nil {
+					fmt.Println("replay", err)
+				}
 			case operationOnlyOriginalRu:
-				replay(s.ctxSpeak, "ru", s.original, speed, 2)
+				err = replay(s.ctxSpeak, "ru", s.original, speed, 2)
+				if err != nil {
+					fmt.Println("replay", err)
+				}
 			case operationOnlyOriginal:
-				replay(s.ctxSpeak, "en", s.original, 2, 1)
+				err = replay(s.ctxSpeak, "en", s.original, 2, 1)
+				if err != nil {
+					fmt.Println("replay", err)
+				}
 			case operationTranslateAndOriginal:
-				replay(s.ctxSpeak, "ru", s.translate, speed, 2)
-				replay(s.ctxSpeak, "en", s.original, speed, 2)
+				err = replay(s.ctxSpeak, "ru", s.translate, speed, 2)
+				if err != nil {
+					fmt.Println("replay", err)
+				}
+				err = replay(s.ctxSpeak, "en", s.original, speed, 2)
+				if err != nil {
+					fmt.Println("replay", err)
+				}
 				// speak(s.ctxSpeak, text, `trans -b -t ru -no-translate -sp "%s"`)
 				// default:
 				// s.translate = speak(s.ctxSpeak, text, `trans -b -t ru -p "%s"`)
@@ -140,7 +156,7 @@ func replay(ctx context.Context, lang, text string, speed, half int) (err error)
 	stdout1, err := c1.StdoutPipe()
 	err = c1.Start()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("gtts-cli:", err)
 		return
 	}
 
@@ -149,15 +165,17 @@ func replay(ctx context.Context, lang, text string, speed, half int) (err error)
 	c2.Stdin = stdout1
 	err = c2.Start()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("mpg123:", err)
 		return
 	}
 	err = c1.Wait()
 	if err != nil {
+		fmt.Println("gtts-cli:", err)
 		return
 	}
 	err = c2.Wait()
 	if err != nil {
+		fmt.Println("mpg123:", err)
 		return
 	}
 

@@ -3,6 +3,8 @@ package localinput
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -28,7 +30,7 @@ func Start(cancel context.CancelFunc, translator intf.Translator) (err error) {
 	readRU := false
 	flagToCopyBuffer := false
 
-	translateshell.Play("sound/interface-soft-click-131438.mp3")
+	translateshell.Play(findSound("sound/interface-soft-click-131438.mp3"))
 
 	ctrl_c_func = func() {
 		if translator.CheckPause() {
@@ -116,9 +118,9 @@ func Start(cancel context.CancelFunc, translator intf.Translator) (err error) {
 		readRU = !readRU
 
 		if readRU {
-			translateshell.Play("sound/computer-processing.mp3")
+			translateshell.Play(findSound("sound/computer-processing.mp3"))
 		} else {
-			translateshell.Play("sound/slide-click-92152.mp3")
+			translateshell.Play(findSound("sound/slide-click-92152.mp3"))
 		}
 	}
 
@@ -132,22 +134,47 @@ func Start(cancel context.CancelFunc, translator intf.Translator) (err error) {
 	alt_v_func = func() {
 		flagToCopyBuffer = !flagToCopyBuffer
 		if flagToCopyBuffer {
-			translateshell.Play("sound/computer-processing.mp3")
+			translateshell.Play(findSound("sound/computer-processing.mp3"))
 		} else {
-			translateshell.Play("sound/slide-click-92152.mp3")
+			translateshell.Play(findSound("sound/slide-click-92152.mp3"))
 		}
 	}
 
 	ctrl_p_func = func() {
 		if !translator.CheckPause() {
-			translateshell.Play("sound/slide-click-92152.mp3")
+			translateshell.Play(findSound("sound/slide-click-92152.mp3"))
 		} else {
-			translateshell.Play("sound/slide-click-92152.mp3")
+			translateshell.Play(findSound("sound/slide-click-92152.mp3"))
 		}
 		translator.SetPause()
 	}
 
 	return devInput()
+}
+
+func findSound(filename string) string {
+	// Сначала проверяем текущую директорию
+	if _, err := os.Stat(filename); err == nil {
+		return filename
+	}
+
+	// Затем проверяем в поддиректории sound текущей директории
+	soundInCurrent := filepath.Join("sound", filename)
+	if _, err := os.Stat(soundInCurrent); err == nil {
+		return soundInCurrent
+	}
+
+	// Если не найдено, ищем в PATH
+	paths := strings.Split(os.Getenv("PATH"), string(os.PathListSeparator))
+	for _, path := range paths {
+		fullPath := filepath.Join(path, filename)
+		if _, err := os.Stat(fullPath); err == nil {
+			return fullPath
+		}
+	}
+
+	// Если не найдено нигде, возвращаем исходное имя файла
+	return filename
 }
 
 var channel = make(chan map[uint16]bool)
