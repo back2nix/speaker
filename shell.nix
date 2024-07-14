@@ -22,12 +22,12 @@ in
       goEnv
       gomod2nix
       go-tools
-      pkgsUnstable.translate-shell
-      pkgsUnstable.python312Packages.gtts
       mpg123
       libxkbcommon
       xorg.libX11.dev
       xorg.libXtst
+      pkgsUnstable.translate-shell
+      pkgsUnstable.python312Packages.gtts
     ];
 
     postShellHook = ''

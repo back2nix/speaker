@@ -26,9 +26,6 @@ in
       libxkbcommon
       xorg.libX11
       xorg.libXtst
-      pkgsUnstable.translate-shell
-      pkgsUnstable.python312Packages.gtts
-      mpg123
     ];
 
     nativeBuildInputs = with pkgs; [makeWrapper];
@@ -37,6 +34,13 @@ in
       cp -r sound $out/;
 
       wrapProgram "$out/bin/speaker" \
-      --prefix PATH : ${lib.makeBinPath [pkgs.mpg123 pkgs.translate-shell pkgs.python310Packages.gtts pkgs.xorg.libXtst pkgs.libxkbcommon pkgs.xorg.libX11]}:$out \
+      --prefix PATH : ${lib.makeBinPath [
+        pkgs.mpg123
+        pkgs.xorg.libXtst
+        pkgs.libxkbcommon
+        pkgs.xorg.libX11
+        pkgsUnstable.translate-shell
+        pkgsUnstable.python312Packages.gtts
+      ]}:$out
     '';
   }
