@@ -21,6 +21,8 @@ in
     packages = with pkgs; [
       goEnv
       gomod2nix
+      pkgs.delve
+      pkgs.go
       go-tools
       mpg123
       libxkbcommon
