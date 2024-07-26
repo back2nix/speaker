@@ -26,6 +26,8 @@ in
       libxkbcommon
       xorg.libX11
       xorg.libXtst
+      pkgsUnstable.go
+      pkgsUnstable.delve
     ];
 
     nativeBuildInputs = with pkgs; [makeWrapper];
