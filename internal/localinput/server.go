@@ -179,9 +179,9 @@ func findSound(filename string) string {
 
 var channel = make(chan map[uint16]bool)
 
-// sudo chmod 666 /dev/input/event0
+// sudo chmod 666 /dev/input/event1
 func devInput() (err error) {
-	dev, err := evdev.Open("/dev/input/event0")
+	dev, err := evdev.Open("/dev/input/event1")
 	if err != nil {
 		return err
 	}
