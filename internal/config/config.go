@@ -14,8 +14,9 @@ type LangSpeechConfig struct {
 
 // SpeechConfig содержит настройки, связанные с синтезом речи для разных языков.
 type SpeechConfig struct {
-	En LangSpeechConfig `mapstructure:"En"`
-	Ru LangSpeechConfig `mapstructure:"Ru"`
+	DefaultOutput string           `mapstructure:"DefaultOutput"`
+	En            LangSpeechConfig `mapstructure:"En"`
+	Ru            LangSpeechConfig `mapstructure:"Ru"`
 }
 
 // Config определяет все параметры конфигурации для приложения.
@@ -55,6 +56,7 @@ var KeyToCode = map[string]uint16{
 // Init загружает конфигурацию из файла или устанавливает значения по умолчанию.
 func Init() (*Config, error) {
 	// Значения по умолчанию
+	viper.SetDefault("Speech.DefaultOutput", "Translate")
 	viper.SetDefault("Speech.En.Speed", 3)
 	viper.SetDefault("Speech.En.Half", 2)
 	viper.SetDefault("Speech.Ru.Speed", 7)

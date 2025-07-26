@@ -37,6 +37,19 @@ func Start(cancel context.CancelFunc, translator intf.Translator, cfg *config.Co
 	logrus.WithField("path", startSoundPath).Info("Playing start sound")
 	translateshell.Play(startSoundPath)
 
+	var mainSpeechAction func()
+	var alternateSpeechAction func()
+
+	if cfg.Speech.DefaultOutput == "Original" {
+		mainSpeechAction = translator.OnlyOriginal
+		alternateSpeechAction = translator.OnlyTranslate
+		logrus.Info("Default speech action: Original (Ctrl+C). Alternate: Translate (Ctrl+Z).")
+	} else {
+		mainSpeechAction = translator.OnlyTranslate
+		alternateSpeechAction = translator.OnlyOriginal
+		logrus.Info("Default speech action: Translate (Ctrl+C). Alternate: Original (Ctrl+Z).")
+	}
+
 	ctrl_c_func = func() {
 		if translator.CheckPause() {
 			return
@@ -83,7 +96,7 @@ func Start(cancel context.CancelFunc, translator intf.Translator, cfg *config.Co
 			translator.OnlyOriginalRu()
 			translator.Go(processedString)
 		} else {
-			translator.OnlyTranslate()
+			mainSpeechAction()
 			translator.Go(processedString)
 		}
 	}
@@ -112,7 +125,7 @@ func Start(cancel context.CancelFunc, translator intf.Translator, cfg *config.Co
 			}).Warn("regexp")
 			return
 		}
-		translator.OnlyOriginal()
+		alternateSpeechAction()
 		translator.Go(processedString)
 	}
 
