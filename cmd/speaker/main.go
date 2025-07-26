@@ -8,11 +8,24 @@ import (
 	"runtime"
 	"syscall"
 
+	"github.com/back2nix/speaker/internal/config"
 	"github.com/back2nix/speaker/internal/localinput"
 	"github.com/back2nix/speaker/internal/translateshell"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
+	logrus.SetLevel(logrus.DebugLevel)
+	logrus.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp: true,
+	})
+	logrus.Info("Logger initialized")
+
+	cfg, err := config.Init()
+	if err != nil {
+		logrus.Fatalf("Failed to initialize config: %v", err)
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	sigs := make(chan os.Signal, 1)
@@ -25,18 +38,18 @@ func main() {
 		os.Exit(0)
 	}()
 
-	trShell := translateshell.New(ctx)
+	trShell := translateshell.New(ctx, &cfg.Speech)
 	go trShell.Run()
 
 	if os.Getenv("WAYLAND_DISPLAY") != "" {
-		fmt.Println("Using Wayland")
+		logrus.Info("Using Wayland input")
 	} else if runtime.GOOS == "darwin" { // macOS
-		fmt.Println("Using macOS")
+		logrus.Info("Using macOS input")
 	} else {
-		fmt.Println("Using X11")
+		logrus.Info("Using X11 input")
 	}
-	err := localinput.Start(cancel, trShell)
+	err = localinput.Start(cancel, trShell, cfg)
 	if err != nil {
-		panic(err)
+		logrus.Fatalf("Failed to start local input: %v", err)
 	}
 }

@@ -13,6 +13,7 @@ import (
 	evdev "github.com/back2nix/golang-evdev"
 	"github.com/sirupsen/logrus"
 
+	"github.com/back2nix/speaker/internal/config"
 	"github.com/back2nix/speaker/internal/intf"
 	"github.com/back2nix/speaker/internal/translateshell"
 )
@@ -26,11 +27,15 @@ var (
 	ctrl_p_func func()
 )
 
-func Start(cancel context.CancelFunc, translator intf.Translator) (err error) {
+func Start(cancel context.CancelFunc, translator intf.Translator, cfg *config.Config) (err error) {
 	readRU := false
 	flagToCopyBuffer := false
 
-	translateshell.Play(findSound("sound/interface-soft-click-131438.mp3"))
+	logrus.Debug("Calling Start function in localinput")
+	// ИСПОЛЬЗУЕМ КЛЮЧИ В НИЖНЕМ РЕГИСТРЕ
+	startSoundPath := findSound(cfg.Sounds["start"])
+	logrus.WithField("path", startSoundPath).Info("Playing start sound")
+	translateshell.Play(startSoundPath)
 
 	ctrl_c_func = func() {
 		if translator.CheckPause() {
@@ -118,9 +123,15 @@ func Start(cancel context.CancelFunc, translator intf.Translator) (err error) {
 		readRU = !readRU
 
 		if readRU {
-			translateshell.Play(findSound("sound/computer-processing.mp3"))
+			// ИСПОЛЬЗУЕМ КЛЮЧИ В НИЖНЕМ РЕГИСТРЕ
+			soundPath := findSound(cfg.Sounds["processing"])
+			logrus.WithField("path", soundPath).Info("Playing processing sound")
+			translateshell.Play(soundPath)
 		} else {
-			translateshell.Play(findSound("sound/slide-click-92152.mp3"))
+			// ИСПОЛЬЗУЕМ КЛЮЧИ В НИЖНЕМ РЕГИСТРЕ
+			soundPath := findSound(cfg.Sounds["click"])
+			logrus.WithField("path", soundPath).Info("Playing click sound")
+			translateshell.Play(soundPath)
 		}
 	}
 
@@ -134,60 +145,79 @@ func Start(cancel context.CancelFunc, translator intf.Translator) (err error) {
 	alt_v_func = func() {
 		flagToCopyBuffer = !flagToCopyBuffer
 		if flagToCopyBuffer {
-			translateshell.Play(findSound("sound/computer-processing.mp3"))
+			// ИСПОЛЬЗУЕМ КЛЮЧИ В НИЖНЕМ РЕГИСТРЕ
+			soundPath := findSound(cfg.Sounds["processing"])
+			logrus.WithField("path", soundPath).Info("Playing processing sound for copy buffer toggle")
+			translateshell.Play(soundPath)
 		} else {
-			translateshell.Play(findSound("sound/slide-click-92152.mp3"))
+			// ИСПОЛЬЗУЕМ КЛЮЧИ В НИЖНЕМ РЕГИСТРЕ
+			soundPath := findSound(cfg.Sounds["click"])
+			logrus.WithField("path", soundPath).Info("Playing click sound for copy buffer toggle")
+			translateshell.Play(soundPath)
 		}
 	}
 
 	ctrl_p_func = func() {
+		// ИСПОЛЬЗУЕМ КЛЮЧИ В НИЖНЕМ РЕГИСТРЕ
+		soundPath := findSound(cfg.Sounds["click"])
 		if !translator.CheckPause() {
-			translateshell.Play(findSound("sound/slide-click-92152.mp3"))
+			logrus.WithField("path", soundPath).Info("Playing click sound for pause")
+			translateshell.Play(soundPath)
 		} else {
-			translateshell.Play(findSound("sound/slide-click-92152.mp3"))
+			logrus.WithField("path", soundPath).Info("Playing click sound for unpause")
+			translateshell.Play(soundPath)
 		}
 		translator.SetPause()
 	}
 
-	return devInput()
+	return devInput(cfg)
 }
 
 func findSound(filename string) string {
-	// Сначала проверяем текущую директорию
+	log := logrus.WithField("original_filename", filename)
+	log.Debug("Attempting to find sound file")
+
+	if filename == "" {
+		log.Warn("Received empty filename for sound")
+		return ""
+	}
+
 	if _, err := os.Stat(filename); err == nil {
+		log.WithField("path", filename).Debug("File found at exact path")
 		return filename
 	}
 
-	// Затем проверяем в поддиректории sound текущей директории
-	soundInCurrent := filepath.Join("sound", filename)
-	if _, err := os.Stat(soundInCurrent); err == nil {
-		return soundInCurrent
+	if !strings.ContainsAny(filename, "/\\") {
+		soundInCurrent := filepath.Join("sound", filename)
+		if _, err := os.Stat(soundInCurrent); err == nil {
+			log.WithField("path", soundInCurrent).Debug("File found in 'sound/' directory")
+			return soundInCurrent
+		}
 	}
 
-	// Если не найдено, ищем в PATH
 	paths := strings.Split(os.Getenv("PATH"), string(os.PathListSeparator))
 	for _, path := range paths {
 		fullPath := filepath.Join(path, filename)
 		if _, err := os.Stat(fullPath); err == nil {
+			log.WithField("path", fullPath).Debug("File found in system PATH")
 			return fullPath
 		}
 	}
 
-	// Если не найдено нигде, возвращаем исходное имя файла
+	log.Warn("Sound file not found in any checked location")
 	return filename
 }
 
 var channel = make(chan map[uint16]bool)
 
-// sudo chmod 666 /dev/input/event1
-func devInput() (err error) {
-	dev, err := evdev.Open("/dev/input/event1")
+func devInput(cfg *config.Config) (err error) {
+	dev, err := evdev.Open(cfg.Input.Device)
 	if err != nil {
 		return err
 	}
 	defer dev.File.Close()
 
-	go PresedWorker()
+	go PresedWorker(cfg)
 
 	key := make(map[uint16]bool)
 
@@ -201,16 +231,12 @@ func devInput() (err error) {
 			if event.Type == evdev.EV_KEY {
 				keyCode := event.Code
 				if event.Value == 1 {
-					// fmt.Println("Key_Down: %d", keyCode)
 					key[keyCode] = true
-					// fmt.Println(key)
 					channel <- key
 				}
 				if event.Value == 0 {
-					// fmt.Println("Key_UP: %d", keyCode)
 					if _, ok := key[keyCode]; ok {
 						delete(key, keyCode)
-						// fmt.Println(key)
 						channel <- key
 					}
 				}
@@ -219,73 +245,124 @@ func devInput() (err error) {
 	}
 }
 
-func PresedWorker() {
-	var last string
-	for k := range channel {
-		var mess string
-		switch {
-		case CheckKeys(evdev.KEY_P, true, false, true, k):
-			mess = "L_CTRL+L_ALT+P"
-		case CheckKeys(evdev.KEY_C, true, true, false, k):
-			mess = "L_CTRL+L_SHIFT+C"
-		case CheckKeys(evdev.KEY_C, true, false, false, k):
-			mess = "L_CTRL+C"
-		case CheckKeys(evdev.KEY_Z, true, false, false, k):
-			mess = "L_CTRL+Z"
-		case CheckKeys(evdev.KEY_Z, false, false, true, k):
-			mess = "L_CTRL+Z"
-		case CheckKeys(evdev.KEY_F, false, false, true, k):
-			mess = "L_ALT+F"
-		case CheckKeys(evdev.KEY_C, false, false, true, k):
-			if last == "L_ALT+C" {
-				mess = "L_ALT+Cx2"
-				last = ""
-			} else {
-				mess = "L_ALT+C"
-			}
-		case CheckKeys(evdev.KEY_V, false, false, true, k):
-			mess = "L_ALT+V"
+func isHotkeyPressed(hotkeyString string, pressedKeys map[uint16]bool) bool {
+	parts := strings.Split(hotkeyString, "+")
+	if len(parts) == 0 {
+		return false
+	}
+
+	var mainKey string
+	wantsCtrl := false
+	wantsAlt := false
+	wantsShift := false
+
+	for _, part := range parts {
+		p := strings.TrimSpace(strings.ToUpper(part))
+		switch p {
+		case "CTRL":
+			wantsCtrl = true
+		case "ALT":
+			wantsAlt = true
+		case "SHIFT":
+			wantsShift = true
+		default:
+			mainKey = p
 		}
-		if mess != "" {
-			last = mess
-			SendMessage(mess)
+	}
+
+	if mainKey == "" {
+		return false
+	}
+
+	keyCode, ok := config.KeyToCode[mainKey]
+	if !ok {
+		return false
+	}
+
+	if _, keyIsPressed := pressedKeys[keyCode]; !keyIsPressed {
+		return false
+	}
+
+	_, ctrlLPressed := pressedKeys[evdev.KEY_LEFTCTRL]
+	_, ctrlRPressed := pressedKeys[evdev.KEY_RIGHTCTRL]
+	isCtrlPressed := ctrlLPressed || ctrlRPressed
+
+	_, altLPressed := pressedKeys[evdev.KEY_LEFTALT]
+	_, altRPressed := pressedKeys[evdev.KEY_RIGHTALT]
+	isAltPressed := altLPressed || altRPressed
+
+	_, shiftLPressed := pressedKeys[evdev.KEY_LEFTSHIFT]
+	_, shiftRPressed := pressedKeys[evdev.KEY_RIGHTSHIFT]
+	isShiftPressed := shiftLPressed || shiftRPressed
+
+	return wantsCtrl == isCtrlPressed && wantsAlt == isAltPressed && wantsShift == isShiftPressed
+}
+
+func PresedWorker(cfg *config.Config) {
+	var lastFiredAction string
+	var lastFiredTime time.Time
+	sentActions := make(map[string]bool)
+
+	for k := range channel {
+		if len(k) == 0 {
+			sentActions = make(map[string]bool)
+			continue
+		}
+
+		var currentAction string
+		if isHotkeyPressed(cfg.Input.Hotkeys.TogglePause, k) {
+			currentAction = "TogglePause"
+		} else if isHotkeyPressed(cfg.Input.Hotkeys.Translate, k) {
+			currentAction = "Translate"
+		} else if isHotkeyPressed(cfg.Input.Hotkeys.TranslateOral, k) {
+			currentAction = "TranslateOral"
+		} else if isHotkeyPressed(cfg.Input.Hotkeys.ToggleReadMode, k) {
+			currentAction = "ToggleReadMode"
+		} else if isHotkeyPressed(cfg.Input.Hotkeys.ToggleCopyBuffer, k) {
+			currentAction = "ToggleCopyBuffer"
+		} else if isHotkeyPressed(cfg.Input.Hotkeys.StopSound, k) {
+			if lastFiredAction == "StopSound" && time.Since(lastFiredTime) < 500*time.Millisecond {
+				currentAction = "ClearClipboard"
+			} else {
+				currentAction = "StopSound"
+			}
+		}
+
+		if currentAction != "" {
+			if !sentActions[currentAction] {
+				SendMessage(currentAction)
+				sentActions[currentAction] = true
+				lastFiredAction = currentAction
+				lastFiredTime = time.Now()
+			}
 		}
 	}
 }
 
-func SendMessage(input string) {
-	if input == "" {
+func SendMessage(action string) {
+	if action == "" {
 		return
 	}
 
-	switch input {
-	case "L_CTRL+L_SHIFT+C", "L_CTRL+C":
+	switch action {
+	case "Translate":
 		ctrl_c_func()
-	case "L_CTRL+Z", "L_ALT+Z":
+	case "TranslateOral":
 		ctrl_z_func()
-	case "L_ALT+F":
+	case "ToggleReadMode":
 		ctrl_f_func()
-	case "L_CTRL+L_ALT+P":
+	case "TogglePause":
 		ctrl_p_func()
-	case "L_ALT+C":
+	case "StopSound":
 		alt_c_func(0)
-	case "L_ALT+V":
-		alt_v_func()
-	case "L_ALT+Cx2":
+	case "ClearClipboard":
 		alt_c_func(1)
+	case "ToggleCopyBuffer":
+		alt_v_func()
 	}
 }
 
-func CheckKeys(key uint16, ctrl, shift, alt bool, k map[uint16]bool) bool {
-	var ctrlL, altL, shiftL bool
-	_, ctrlL = k[evdev.KEY_LEFTCTRL]
-	_, altL = k[evdev.KEY_LEFTALT]
-	_, shiftL = k[evdev.KEY_LEFTSHIFT]
-	if _, ok := k[key]; ok && ctrl == ctrlL && shift == shiftL && alt == altL {
-		return true
-	}
-	return false
-}
+// --- ВОССТАНОВЛЕННЫЙ КОД ---
 
 var (
 	reg0             = regexp.MustCompile(`[^a-zA-Z\p{Han}0-9 .,\r\n]+`)
@@ -293,8 +370,6 @@ var (
 	reg3             = regexp.MustCompile(`([[:lower:]])([[:upper:]])`)
 	reg4             = regexp.MustCompile(`(\b(\p{L}+)\b)`)
 	singleSpaceRegex = regexp.MustCompile(`\s+`)
-
-	re = regexp.MustCompile(`([\wλ]+)\s+∈\s+([\w ]+)`)
 
 	mathSymbols = map[string]string{
 		"ё":    "е",
@@ -309,16 +384,12 @@ var (
 		"0m":   "Zero matrix",
 		"1m,n": "Unit matrix with m rows and n columns",
 		"1m":   "Unit matrix",
-		// "ei":   "Exponential constant e raised to the power i",
-		// "dim":  "Dimension",
 		"rk(A)":    "Rank of matrix A",
 		"Im(Φ)":    "Image of transformation Φ",
 		"ker(Φ)":   "Kernel of transformation Φ",
 		"span[b1]": "Span of vector b1",
 		"tr(A)":    "Trace of matrix A",
 		"det(A)":   "Determinant of matrix A",
-		// "| · |": "Absolute value",
-		// "∥·∥": "Norm",
 		"Eλ":     "Eigenvalue matrix E for eigenvalue λ",
 		"∅":      "Empty set",
 		"a ∈ A":  "a belongs to set A",
@@ -357,52 +428,33 @@ var (
 )
 
 func compileMathSymbolsRegexp() *regexp.Regexp {
-	var regexPattern string
+	var pattern string
 	for symbol := range mathSymbols {
-		if regexPattern != "" {
-			regexPattern += "|"
+		if pattern != "" {
+			pattern += "|"
 		}
-		regexPattern += regexp.QuoteMeta(symbol)
+		pattern += regexp.QuoteMeta(symbol)
 	}
-	regexPattern = "(" + regexPattern + ")"
-
-	// Заменяем символы в строке на их описания
-	return regexp.MustCompile(regexPattern)
+	pattern = "(" + pattern + ")"
+	return regexp.MustCompile(pattern)
 }
 
 func MathRegex(input string) (out string, err error) {
-	// out = re.ReplaceAllStringFunc(input, func(match string) string {
-	// 	matches := re.FindStringSubmatch(match)
-	// 	element := matches[1]
-	// 	set := matches[2]
-	//
-	// 	if replacement, exists := dictionary[element]; exists {
-	// 		return fmt.Sprintf("%s belongs to the set of %s", replacement, set)
-	// 	}
-	// 	return match
-	// })
-
 	out = regexPattern.ReplaceAllStringFunc(input, func(matched string) string {
 		return mathSymbols[matched]
 	})
-
 	return out, nil
 }
 
 func RegexWork(tt string) (out string, err error) {
 	tt, _ = MathRegex(tt)
-
 	tt = strings.NewReplacer("\n", "", "\r", "", "\"", "", "'", "").Replace(tt)
-
 	tt = reg0.ReplaceAllString(tt, " ")
 	tt = reg4.ReplaceAllString(tt, " $1 ")
 	tt = reg3.ReplaceAllString(tt, "$1 $2")
 	tt = reg2.ReplaceAllString(tt, "$1. $2")
-
 	tt = strings.NewReplacer(" .", ".", " ,", ",").Replace(tt)
-
 	tt = singleSpaceRegex.ReplaceAllString(tt, " ")
-
 	return strings.TrimSpace(tt), nil
 }
 
@@ -417,6 +469,5 @@ func RegexWorkRu(tt string) (out string, err error) {
 	tt = singleSpacePattern.ReplaceAllString(tt, " ")
 	tt = strings.ReplaceAll(tt, " .", ".")
 	tt = strings.ReplaceAll(tt, " ,", ",")
-
 	return strings.TrimSpace(tt), nil
 }

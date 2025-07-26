@@ -1,0 +1,24 @@
+Speech:
+  En:
+    Speed: 3
+    Half: 2
+  Ru:
+    Speed: 7
+    Half: 2
+
+Input:
+  Device: /dev/input/event1
+  Listen: ":3111" # для server.go
+  Hotkeys:
+    Translate: "Ctrl+C"
+    TranslateOral: "Ctrl+Z"
+    ToggleReadMode: "Alt+F"
+    TogglePause: "Ctrl+Alt+P"
+    StopSound: "Alt+C"
+    # 'ClearClipboard' использует ту же комбинацию, что и StopSound, при двойном нажатии.
+    ToggleCopyBuffer: "Alt+V"
+
+Sounds:
+  Start: "sound/interface-soft-click-131438.mp3"
+  Processing: "sound/computer-processing.mp3"
+  Click: "sound/slide-click-92152.mp3"

@@ -7,6 +7,9 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/back2nix/speaker/internal/config"
+	"github.com/sirupsen/logrus"
 )
 
 type Store struct {
@@ -19,12 +22,14 @@ type Store struct {
 	original      string
 	translate     string
 	lastText      string
+	speechConfig  *config.SpeechConfig
 }
 
-func New(ctx context.Context) (store *Store) {
+func New(ctx context.Context, speechCfg *config.SpeechConfig) (store *Store) {
 	store = &Store{
-		ctx:    ctx,
-		chText: make(chan string),
+		ctx:          ctx,
+		chText:       make(chan string),
+		speechConfig: speechCfg,
 	}
 	return
 }
@@ -51,39 +56,42 @@ func (s *Store) Run() {
 				s.original = text
 			}
 
-			speed := 7
-			// speed := 3
-
 			var err error
 			switch s.typeOperation {
 			case operationOnlyTranslate:
-				err = replay(s.ctxSpeak, "ru", s.translate, speed, 2)
+				speed := s.speechConfig.Ru.Speed
+				half := s.speechConfig.Ru.Half
+				err = replay(s.ctxSpeak, "ru", s.translate, speed, half)
 				if err != nil {
-					fmt.Println("replay", err)
+					logrus.WithError(err).Error("Replay 'OnlyTranslate' failed")
 				}
 			case operationOnlyOriginalRu:
-				err = replay(s.ctxSpeak, "ru", s.original, speed, 2)
+				speed := s.speechConfig.Ru.Speed
+				half := s.speechConfig.Ru.Half
+				err = replay(s.ctxSpeak, "ru", s.original, speed, half)
 				if err != nil {
-					fmt.Println("replay", err)
+					logrus.WithError(err).Error("Replay 'OnlyOriginalRu' failed")
 				}
 			case operationOnlyOriginal:
-				err = replay(s.ctxSpeak, "en", s.original, 2, 1)
+				speed := s.speechConfig.En.Speed
+				half := s.speechConfig.En.Half
+				err = replay(s.ctxSpeak, "en", s.original, speed, half)
 				if err != nil {
-					fmt.Println("replay", err)
+					logrus.WithError(err).Error("Replay 'OnlyOriginal' failed")
 				}
 			case operationTranslateAndOriginal:
-				err = replay(s.ctxSpeak, "ru", s.translate, speed, 2)
+				speedRu := s.speechConfig.Ru.Speed
+				halfRu := s.speechConfig.Ru.Half
+				err = replay(s.ctxSpeak, "ru", s.translate, speedRu, halfRu)
 				if err != nil {
-					fmt.Println("replay", err)
+					logrus.WithError(err).Error("Replay 'TranslateAndOriginal' (RU) failed")
 				}
-				err = replay(s.ctxSpeak, "en", s.original, speed, 2)
+				speedEn := s.speechConfig.En.Speed
+				halfEn := s.speechConfig.En.Half
+				err = replay(s.ctxSpeak, "en", s.original, speedEn, halfEn)
 				if err != nil {
-					fmt.Println("replay", err)
+					logrus.WithError(err).Error("Replay 'TranslateAndOriginal' (EN) failed")
 				}
-				// speak(s.ctxSpeak, text, `trans -b -t ru -no-translate -sp "%s"`)
-				// default:
-				// s.translate = speak(s.ctxSpeak, text, `trans -b -t ru -p "%s"`)
-				// speak(s.ctxSpeak, text, `trans -b -t ru -no-translate -sp "%s"`)
 			}
 		}()
 	}
@@ -142,7 +150,7 @@ func speak(ctx context.Context, text, command string) string {
 var c2 *exec.Cmd
 
 func replay(ctx context.Context, lang, text string, speed, half int) (err error) {
-	if c2 != nil {
+	if c2 != nil && c2.Process != nil {
 		_ = c2.Process.Kill()
 	}
 
@@ -154,47 +162,69 @@ func replay(ctx context.Context, lang, text string, speed, half int) (err error)
 	fmt.Println(text)
 	c1 := exec.CommandContext(ctx, "bash", "-c", strCommand)
 	stdout1, err := c1.StdoutPipe()
-	err = c1.Start()
 	if err != nil {
-		fmt.Println("gtts-cli:", err)
+		logrus.WithError(err).Error("gtts-cli stdout pipe failed")
+		return
+	}
+	if err = c1.Start(); err != nil {
+		logrus.WithError(err).Error("gtts-cli start failed")
 		return
 	}
 
 	strCommand2 := fmt.Sprintf(`mpg123 -d %d -h %d --pitch 0 -`, speed, half)
 	c2 = exec.CommandContext(ctx, "bash", "-c", strCommand2)
 	c2.Stdin = stdout1
-	err = c2.Start()
-	if err != nil {
-		fmt.Println("mpg123:", err)
+	if err = c2.Start(); err != nil {
+		logrus.WithError(err).Error("mpg123 start failed")
 		return
 	}
-	err = c1.Wait()
-	if err != nil {
-		fmt.Println("gtts-cli:", err)
-		return
+	if err = c1.Wait(); err != nil {
+		logrus.WithError(err).Warn("gtts-cli wait finished with error")
 	}
-	err = c2.Wait()
-	if err != nil {
-		fmt.Println("mpg123:", err)
-		return
+	if err = c2.Wait(); err != nil {
+		logrus.WithError(err).Warn("mpg123 wait finished with error")
 	}
 
-	return
+	return nil
 }
 
 func Stop() {
-	if c2 != nil {
+	if c2 != nil && c2.Process != nil {
 		_ = c2.Process.Kill()
 	}
 }
 
 func Play(file string) {
-	if c2 != nil {
+	log := logrus.WithField("file", file)
+	log.Debug("Play function called")
+
+	if c2 != nil && c2.Process != nil {
+		log.Debug("Stopping previous playback")
 		_ = c2.Process.Kill()
 	}
-	ctx := context.Background()
-	strCommand2 := fmt.Sprintf(`mpg123 %s`, file)
-	c2 = exec.CommandContext(ctx, "bash", "-c", strCommand2)
-	// c2.Stderr = os.Stderr
-	c2.Start()
+
+	if _, err := os.Stat(file); os.IsNotExist(err) {
+		log.WithError(err).Error("Sound file does not exist at the given path.")
+		return
+	}
+
+	// Используем -q (quiet), чтобы подавить информационный вывод mpg123
+	strCommand := fmt.Sprintf(`mpg123 -q "%s"`, file)
+	log.WithField("command", strCommand).Info("Executing sound playback command")
+
+	// Мы не используем CommandContext, т.к. звук должен играть в фоне без привязки к контексту операции
+	cmd := exec.Command("sh", "-c", strCommand)
+
+	go func() {
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			log.WithError(err).WithField("output", string(output)).Error("Sound playback command failed")
+			return
+		}
+		if len(output) > 0 {
+			log.WithField("output", string(output)).Debug("Sound playback command finished with output")
+		} else {
+			log.Debug("Sound playback command finished successfully")
+		}
+	}()
 }

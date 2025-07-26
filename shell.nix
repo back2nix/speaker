@@ -1,34 +1,30 @@
-let
-  inherit (builtins) fetchTree fromJSON readFile;
-  flakeLock = fromJSON (readFile ./flake.lock);
+{
+  # Чистая функция. Все аргументы передаются из flake.nix.
+  pkgs,
+  pkgsUnstable,
+}: let
+  goEnv = pkgsUnstable.mkGoEnv { pwd = ./.; };
 in
-  {
-    pkgs ? (import (fetchTree flakeLock.nodes.nixpkgs.locked) {
-      overlays = [
-        (import "${fetchTree flakeLock.nodes.gomod2nix.locked}/overlay.nix")
-      ];
-    }),
-    mkGoEnv ? pkgs.mkGoEnv,
-    gomod2nix ? pkgs.gomod2nix,
-    pkgsUnstable ? (import (fetchTree flakeLock.nodes.nixpkgs-unstable.locked) {}),
-  }: let
-    goEnv = mkGoEnv {pwd = ./.;};
-  in
-    pkgs.mkShell {
-      name = "speaker-shell";
-      packages = with pkgs; [
-        goEnv
-        gomod2nix
-        pkgsUnstable.delve
-        pkgsUnstable.go
-        go-tools
-        mpg123
+  pkgs.mkShell {
+    name = "speaker-shell";
+    packages =
+      # Стабильные пакеты
+      (with pkgs; [
         libxkbcommon
         xorg.libX11.dev
         xorg.libXtst
-        pkgsUnstable.translate-shell
-        pkgsUnstable.python312Packages.gtts
-      ];
+        mpg123
+      ])
+      # Нестабильные пакеты
+      ++ (with pkgsUnstable; [
+        go
+        go-tools
+        delve
+        gomod2nix
+        translate-shell
+        python312Packages.gtts
+        goEnv
+      ]);
 
-      postShellHook = '''';
-    }
+    postShellHook = '''';
+  }
