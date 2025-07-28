@@ -1,16 +1,16 @@
-### Если не установлен nix
+### If Nix is not installed
 
 - https://nixos.org/download/#nix-install-linux
-```nix
+```bash
 sh <(curl -L https://nixos.org/nix/install) --daemon
 ```
 
-### Как запустить?
+### How to run it?
 
 ```bash
 nix run github:back2nix/speaker
 ```
-- или
+- or
 
 ```bash
 git clone https://github.com/back2nix/speaker
@@ -18,45 +18,47 @@ cd speaker
 nix run .
 ```
 
-- или
+- or
 
 ```bash
 git clone https://github.com/back2nix/speaker
 cd speaker
 nix develop
-go mod tidy
 make run
 ```
-- или
+
+- or
 
 ```bash
 git clone https://github.com/back2nix/speaker
 cd speaker
 nix build .
 result/bin/speaker
-# sudo result/bin/keylogger # запустить в отдельном окне если у вас Wayland а не X11
+# sudo result/bin/keylogger # run in a separate terminal if you're on Wayland instead of X11
 ```
 
-#### Переводчик вслух
+#### Voice Translator
 
-- Копируешь текст на иностранном языке и программа читает в слух на русском
+- Copy text in a foreign language — the app will read it aloud in Russian.
 
-#### Горячие клавиши
+#### Hotkeys
 
 ```
-ctrl+c | ctrl+shift+c - скопировать и прочитать на английском
-ctrl+z - повторить на английском
-ctrl+f - переключить (переводчик)/(читать без перевода)
-ctrl+alt+p  - Пауза
-alt+c - break read
-alt+c x2 - break and flush clipboard
-alt+v - скопированный русский текст будет переводится в англиский и помещаться в буфер обмена
+ctrl+c | ctrl+shift+c - copy and read in English
+ctrl+z - repeat last in English
+ctrl+f - toggle (translate/read only)
+ctrl+alt+p - pause
+alt+c - stop reading
+alt+c x2 - stop and clear clipboard
+alt+v - auto-translate copied Russian text to English and put it in the clipboard
 ```
 
-### Как проверить что у вас Wayland
+### How to check if you're on Wayland
 
+```bash
 echo $WAYLAND_DISPLAY
+```
 
-### Собрано с помощью
+### Built with
 
 - https://github.com/nix-community/gomod2nix/blob/master/docs/getting-started.md
