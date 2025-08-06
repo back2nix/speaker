@@ -3,7 +3,9 @@ Speech:
   # "Translate" - озвучивать перевод (поведение по умолчанию).
   # "Original" - озвучивать оригинальный текст.
   # Ctrl+Z всегда выполняет противоположное действие.
-  DefaultOutput: "Original"
+  # DefaultOutput: "Translate"
+  # DefaultOutput: "Original"
+  DefaultOutput: "RussianOnly"
   En:
     Speed: 3
     Half: 2

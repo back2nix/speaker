@@ -40,11 +40,16 @@ func Start(cancel context.CancelFunc, translator intf.Translator, cfg *config.Co
 	var mainSpeechAction func()
 	var alternateSpeechAction func()
 
-	if cfg.Speech.DefaultOutput == "Original" {
+	switch cfg.Speech.DefaultOutput {
+	case "Original":
 		mainSpeechAction = translator.OnlyOriginal
 		alternateSpeechAction = translator.OnlyTranslate
 		logrus.Info("Default speech action: Original (Ctrl+C). Alternate: Translate (Ctrl+Z).")
-	} else {
+	case "RussianOnly":
+		mainSpeechAction = translator.OnlyOriginalRu
+		alternateSpeechAction = translator.OnlyOriginalRu
+		logrus.Info("Default speech action: RussianOnly (Ctrl+C and Ctrl+Z are for Russian speech).")
+	default: // "Translate" and any other value
 		mainSpeechAction = translator.OnlyTranslate
 		alternateSpeechAction = translator.OnlyOriginal
 		logrus.Info("Default speech action: Translate (Ctrl+C). Alternate: Original (Ctrl+Z).")
@@ -81,7 +86,12 @@ func Start(cancel context.CancelFunc, translator intf.Translator, cfg *config.Co
 			return
 		}
 
-		processedString, err := RegexWork(text)
+		var processedString string
+		if readRU || cfg.Speech.DefaultOutput == "RussianOnly" {
+			processedString, err = RegexWorkRu(text)
+		} else {
+			processedString, err = RegexWork(text)
+		}
 
 		fmt.Println(processedString)
 
@@ -92,7 +102,6 @@ func Start(cancel context.CancelFunc, translator intf.Translator, cfg *config.Co
 			return
 		}
 		if readRU {
-			processedString, _ := RegexWorkRu(text)
 			translator.OnlyOriginalRu()
 			translator.Go(processedString)
 		} else {
@@ -118,7 +127,12 @@ func Start(cancel context.CancelFunc, translator intf.Translator, cfg *config.Co
 			return
 		}
 
-		processedString, err := RegexWork(text)
+		var processedString string
+		if cfg.Speech.DefaultOutput == "RussianOnly" {
+			processedString, err = RegexWorkRu(text)
+		} else {
+			processedString, err = RegexWork(text)
+		}
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"err": err,
